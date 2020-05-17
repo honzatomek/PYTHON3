@@ -1,3 +1,9 @@
 [submodule "res/Three-Body-Problem"]
 	path = res/Three-Body-Problem
 	url = https://github.com/TianyiY/Three-Body-Problem
+[submodule "bin/three_body_problem"]
+	path = bin/three_body_problem
+	url = git@github.com:honzatomek/three_body_problem.git
+[submodule "bin/conway"]
+	path = bin/conway
+	url = git@github.com:honzatomek/conway.git
