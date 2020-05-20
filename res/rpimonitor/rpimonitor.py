@@ -159,12 +159,10 @@ if __name__ == '__main__':
         client.connect('localhost', 1883, 60)
         while (_i < args.number) or (args.number == -1):
             os.system('clear')
-            print(m.stats(out_type='print'))
-            stats = m.stats(out_type='raw')
-            for cat in stats:
-                for key in stats[cat]:
-                    # print("'rpimonitor/{0}/{1}' - '{2}'".format(cat, key, stats[cat][key].val()))
-                    client.publish('rpimonitor/{0}/{1}'.format(cat, key), payload='{0}'.format(stats[cat][key].val()), qos=0, retain=False)
+            # print(m.stats(out_type='print'))
+            stats = m.stats(out_type='json')
+            print(stats)
+            client.publish('rpimonitor', payload=stats, qos=0, retain=False)
             _i += 1
             sleep(args.delay)
     except KeyboardInterrupt:
