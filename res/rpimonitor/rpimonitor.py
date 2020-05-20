@@ -10,6 +10,7 @@ import argparse
 import os
 import json
 from time import sleep
+import paho.mqtt.client as mqtt
 
 # <--------------------------------------------------------------------------- global variables --->
 TEMP_FILE = '/sys/class/thermal/thermal_zone0/temp'
@@ -57,6 +58,9 @@ class Value:
             self.value = eval(command) / self.divide
         else:
             raise Exception('No callback function specified for {0}.'.format(self.description))
+
+    def val(self):
+        return '{0} {1}'.format(self.fmt.format(self.value), self.units)
 
 
 class RPiMonitor:
@@ -132,6 +136,8 @@ class RPiMonitor:
             return json.dumps(self.dict())
         elif out_type == 'dict':
             return self.dict()
+        elif out_type == 'raw':
+            return self.__data
 
 if __name__ == '__main__':
     '''
@@ -140,19 +146,25 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=True)
     parser.add_argument('-n', '--number', metavar='number', type=int, default=-1,
                         help='how many times the stat shall be run, default=-1 => indefinetly')
-    parser.add_argument('-d', '--delay', metavar='delay', type=float, default=5.0,
-                        help='delay inbetween stat refresh in seconds, default = 5.0 s')
-    parser.add_argument('-o', '--output', metavar='output', type=str, default='print',
-                        help='output format [print / json], default = print')
+    parser.add_argument('-d', '--delay', metavar='delay', type=float, default=10.0,
+                        help='delay inbetween stat refresh in seconds, default = 10.0 s')
 
     args = parser.parse_args()
 
     try:
         m = RPiMonitor()
         _i = 0
+        client = mqtt.Client(client_id="rpimonitor")  # , clean_session=True, userdata=None, protocol='MQTTv311', transport="tcp")
+        # client.connect('37.143.112.18', 1883, 60)
+        client.connect('localhost', 1883, 60)
         while (_i < args.number) or (args.number == -1):
             os.system('clear')
-            print(m.stats(out_type=args.output))
+            print(m.stats(out_type='print'))
+            stats = m.stats(out_type='raw')
+            for cat in stats:
+                for key in stats[cat]:
+                    # print("'rpimonitor/{0}/{1}' - '{2}'".format(cat, key, stats[cat][key].val()))
+                    client.publish('rpimonitor/{0}/{1}'.format(cat, key), payload='{0}'.format(stats[cat][key].val()), qos=0, retain=False)
             _i += 1
             sleep(args.delay)
     except KeyboardInterrupt:
