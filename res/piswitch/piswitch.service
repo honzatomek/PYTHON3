@@ -1,0 +1,11 @@
+[Unit]
+Description=Starts softshut for Pi Switch
+Requires=local-fs.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3.5 /home/pi/bin/piswitch/default/piswitch
+WorkingDirectory=/home/pi/bin/piswitch/default/
+
+[Install]
+WantedBy=multi-user.target
